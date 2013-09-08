@@ -8,9 +8,8 @@ arch=('x86_64' 'i686')
 url="https://github.com/lex148/LightRead"
 license=('MIT')
 depends=('xsel')
-makedepends=('go','git')
+makedepends=('go')
 options=('!strip' '!emptydirs')
-source=('LightRead::git://github.com/lex148/LightRead.git')
 md5sums=('SKIP')
 _gourl=github.com/lex148/LightRead
 
@@ -28,5 +27,6 @@ package() {
   source /etc/profile.d/go.sh
   mkdir -p "${pkgdir}/$GOPATH"
   cp -Rv --preserve=timestamps "${srcdir}"/{src,pkg} "${pkgdir}/$GOPATH"
+  install -Dm755 "${srcdir}/bin/LightRead" "${pkgdir}/usr/bin/LightRead"
 }
 
