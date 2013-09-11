@@ -1,11 +1,21 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"github.com/BurntSushi/xgbutil"
 	"github.com/BurntSushi/xgbutil/keybind"
 	"github.com/BurntSushi/xgbutil/xevent"
+	"io"
+	"os"
 	"os/exec"
+)
+
+type SourceType float64
+
+const (
+	Clipboard = iota
+	Selection = iota
 )
 
 func main() {
@@ -15,13 +25,13 @@ func main() {
 
 	cb1 := keybind.KeyPressFun(
 		func(X *xgbutil.XUtil, e xevent.KeyPressEvent) {
-			read_sel()
+			read(Selection)
 		})
 	cb1.Connect(X, X.RootWin(), "control-z", true)
 
 	cb2 := keybind.KeyPressFun(
 		func(X *xgbutil.XUtil, e xevent.KeyPressEvent) {
-			read_clip()
+			read(Clipboard)
 		})
 	cb2.Connect(X, X.RootWin(), "control-q", true)
 
@@ -33,36 +43,75 @@ func main() {
 
 var player (exec.Cmd)
 
-func read_clip() {
+func read(source SourceType) {
+	_, err := exec.LookPath("swift")
+	if err == nil {
+		swift_read(source)
+	} else {
+		festival_read(source)
+	}
+}
+
+func festival_read(source SourceType) {
 	if player.Process != nil {
 		player.Process.Kill()
 		player.Process.Wait()
 	}
-	xsel := exec.Command("xclip", "-o")
-	festival := exec.Command("text2wave", "-o", "/dev/stdout", "/dev/stdin")
+	xsel := build_xsel_command(source)
+	tts_engine := exec.Command("text2wave", "-o", "/dev/stdout", "/dev/stdin")
 	player = *exec.Command("aplay", "/dev/stdin")
 	xsel_pipe, _ := xsel.StdoutPipe()
-	festival.Stdin = xsel_pipe
-	festival_pipe, _ := festival.StdoutPipe()
-	player.Stdin = festival_pipe
+	tts_engine.Stdin = xsel_pipe
+	tts_engine_pipe, _ := tts_engine.StdoutPipe()
+	player.Stdin = tts_engine_pipe
 	xsel.Start()
-	festival.Start()
+	tts_engine.Start()
 	player.Start()
 }
 
-func read_sel() {
+func swift_read(source SourceType) {
 	if player.Process != nil {
 		player.Process.Kill()
 		player.Process.Wait()
 	}
-	xsel := exec.Command("xsel")
-	festival := exec.Command("text2wave", "-o", "/dev/stdout", "/dev/stdin")
-	player = *exec.Command("aplay", "/dev/stdin")
-	xsel_pipe, _ := xsel.StdoutPipe()
-	festival.Stdin = xsel_pipe
-	festival_pipe, _ := festival.StdoutPipe()
-	player.Stdin = festival_pipe
-	xsel.Start()
-	festival.Start()
+	write_sel_to_temp_file(source)
+	tts_engine := exec.Command("swift", "-o", "/tmp/light_read.wav", "-f", "/tmp/light_read.txt")
+	tts_engine.Run()
+	os.Remove("/tmp/light_read.txt")
+	player = *exec.Command("aplay", "/tmp/light_read.wav")
 	player.Start()
+}
+
+func build_xsel_command(source SourceType) exec.Cmd {
+
+	switch {
+	case source == Selection:
+		return *exec.Command("xsel")
+	case source == Clipboard:
+		return *exec.Command("xsel", "-b")
+	}
+	return *exec.Command("xsel")
+}
+
+func write_sel_to_temp_file(source SourceType) {
+	text, _ := os.Create("/tmp/light_read.txt")
+	w := bufio.NewWriter(text)
+	buf := make([]byte, 1024)
+	xsel := build_xsel_command(source)
+	r, _ := xsel.StdoutPipe()
+	xsel.Start()
+	for {
+		n, err := r.Read(buf)
+		if err != nil && err != io.EOF {
+			panic(err)
+		}
+		if n == 0 {
+			break
+		}
+		if _, err := w.Write(buf[:n]); err != nil {
+			panic(err)
+		}
+	}
+	w.Flush()
+	text.Close()
 }
