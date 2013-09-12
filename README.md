@@ -1,14 +1,13 @@
 Light Read
 ========
 
-####A utility that will text to speech all selected text when Ctrl-z is pressed
-
+###Light Read is a utility for Linux that will text-to-speech all selected text when Ctrl-z is pressed. It works with text to speech engines such as festival and Cepstral’s swift.
 
 ## Usage
 1. Select some text
 2. Press Control-z
 
-or press control-q to read the text in your clipboard 
+or press control-q to read the text in your clipboard
 
 
 
@@ -25,7 +24,7 @@ or adding the following line to the top of your .xinitrc file before
 LightRead &
 ```
 
-## Dependencies 
+## Dependencies
 ```bash
 xsel
 xclip
