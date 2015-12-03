@@ -42,6 +42,8 @@ func main() {
 }
 
 var player (exec.Cmd)
+var tts_engine (exec.Cmd)
+var xsel (exec.Cmd)
 
 func read(source SourceType) {
 	_, err := exec.LookPath("swift")
@@ -52,13 +54,25 @@ func read(source SourceType) {
 	}
 }
 
-func festival_read(source SourceType) {
+func kill_all_the_things(){
 	if player.Process != nil {
 		player.Process.Kill()
 		player.Process.Wait()
 	}
-	xsel := build_xsel_command(source)
-	tts_engine := exec.Command("text2wave", "-o", "/dev/stdout", "/dev/stdin")
+	if tts_engine.Process != nil {
+		tts_engine.Process.Kill()
+		tts_engine.Process.Wait()
+	}
+	if xsel.Process != nil {
+		xsel.Process.Kill()
+		xsel.Process.Wait()
+	}
+}
+
+func festival_read(source SourceType) {
+  kill_all_the_things()
+	xsel = *build_xsel_command(source)
+	tts_engine = *exec.Command("text2wave", "-o", "/dev/stdout", "/dev/stdin")
 	player = *exec.Command("aplay", "/dev/stdin")
 	xsel_pipe, _ := xsel.StdoutPipe()
 	tts_engine.Stdin = xsel_pipe
@@ -82,15 +96,15 @@ func swift_read(source SourceType) {
 	player.Start()
 }
 
-func build_xsel_command(source SourceType) exec.Cmd {
+func build_xsel_command(source SourceType) *exec.Cmd {
 
 	switch {
 	case source == Selection:
-		return *exec.Command("xsel")
+		return exec.Command("xsel")
 	case source == Clipboard:
-		return *exec.Command("xsel", "-b")
+		return exec.Command("xsel", "-b")
 	}
-	return *exec.Command("xsel")
+	return exec.Command("xsel")
 }
 
 func write_sel_to_temp_file(source SourceType) {
