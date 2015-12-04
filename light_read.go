@@ -46,12 +46,13 @@ var tts_engine (exec.Cmd)
 var xsel (exec.Cmd)
 
 func read(source SourceType) {
-	_, err := exec.LookPath("swift")
-	if err == nil {
-		swift_read(source)
-	} else {
-		festival_read(source)
-	}
+  ////conflicts with swift lang
+	//_, err := exec.LookPath("swift")
+	//if err == nil {
+	//	swift_read(source)
+	//} else {
+	festival_read(source)
+	//}
 }
 
 func kill_all_the_things(){
