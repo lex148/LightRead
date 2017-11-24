@@ -14,11 +14,11 @@ source=("git+https://github.com/lex148/LightRead.git")
 md5sums=("SKIP")
 _gourl=github.com/lex148/LightRead
 
-pkgver() {
+#pkgver() {
   # Use date of latest commit for pkgver
-  cd "$srcdir/go-mtpfs"
-  git log -1 --format="%cd" --date=short | sed 's|-||g'
-}
+  #cd "$srcdir/go-mtpfs"
+  #git log -1 --format="%cd" --date=short | sed 's|-||g'
+#}
 
 build() {
   cd "$srcdir"

@@ -19,7 +19,6 @@ const (
 )
 
 func main() {
-
 	X, _ := xgbutil.NewConn()
 	keybind.Initialize(X)
 
@@ -46,7 +45,7 @@ var tts_engine (exec.Cmd)
 var xsel (exec.Cmd)
 
 func read(source SourceType) {
-  ////conflicts with swift lang
+	////conflicts with swift lang
 	//_, err := exec.LookPath("swift")
 	//if err == nil {
 	//	swift_read(source)
@@ -55,7 +54,7 @@ func read(source SourceType) {
 	//}
 }
 
-func kill_all_the_things(){
+func kill_all_the_things() {
 	if player.Process != nil {
 		player.Process.Kill()
 		player.Process.Wait()
@@ -71,10 +70,10 @@ func kill_all_the_things(){
 }
 
 func festival_read(source SourceType) {
-  kill_all_the_things()
+	kill_all_the_things()
 	xsel = *build_xsel_command(source)
 	tts_engine = *exec.Command("text2wave", "-o", "/dev/stdout", "/dev/stdin")
-	player = *exec.Command("aplay", "/dev/stdin")
+	player = *exec.Command("aplay", "-fS16_LE", "-r16000", "/dev/stdin")
 	xsel_pipe, _ := xsel.StdoutPipe()
 	tts_engine.Stdin = xsel_pipe
 	tts_engine_pipe, _ := tts_engine.StdoutPipe()
