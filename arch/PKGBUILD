@@ -2,7 +2,7 @@
 # Maintainer: Lex Childs <lex.childs (at) gmail (dot) com>
 
 pkgname=light-read-git
-pkgver=20151119
+pkgver=20171126
 pkgrel=1
 pkgdesc="Simple tool reading allowed (TTS) selected and copyed text"
 arch=('x86_64' 'i686')
